@@ -9,7 +9,7 @@
   <arg name="base_frame_id"   default="base_footprint"/>
   <arg name="global_frame_id" default="map"/>
   <arg name="odom_topic" default="odom" />
-  <arg name="laser_topic" default="/pepper_robot/laser" />
+  <arg name="laser_topic" default="/naoqi_driver_node/laser" />
   <arg name="custom_param_file" default="$(find pepper_navigation)/param/dummy.yaml"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">

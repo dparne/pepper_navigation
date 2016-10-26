@@ -1,0 +1,66 @@
+<launch>
+    <arg name="scan_topic" default="/naoqi_driver_node/camera/depth/image_raw"/>
+    <arg name="camera_info" default="/naoqi_driver_node/camera/depth/camera_info"/>
+    <arg name="base_frame" default="base_footprint"/>
+    <arg name="odom_frame" default="odom"/>
+
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+        <param name="base_frame" value="$(arg base_frame)"/>
+        <param name="odom_frame" value="$(arg odom_frame)"/>
+        <param name="map_update_interval" value="0.5"/>
+        <param name="maxUrange" value="6.0"/>
+        <param name="maxRange" value="8.0"/>
+        <param name="sigma" value="0.05"/>
+        <param name="kernelSize" value="1"/>
+        <param name="lstep" value="0.05"/>
+        <param name="astep" value="0.05"/>
+        <param name="iterations" value="5"/>
+        <param name="lsigma" value="0.075"/>
+        <param name="ogain" value="3.0"/>
+        <param name="lskip" value="0"/>
+        <param name="minimumScore" value="50"/>
+        <param name="srr" value="0.01"/>
+        <param name="srt" value="0.02"/>
+        <param name="str" value="0.01"/>
+        <param name="stt" value="0.02"/>
+        <param name="linearUpdate" value="0.5"/>
+        <param name="angularUpdate" value="0.436"/>
+        <param name="temporalUpdate" value="-1.0"/>
+        <param name="resampleThreshold" value="0.5"/>
+        <param name="particles" value="80"/>
+        <!--
+    <param name="xmin" value="-50.0"/>
+    <param name="ymin" value="-50.0"/>
+    <param name="xmax" value="50.0"/>
+    <param name="ymax" value="50.0"/>
+  make the starting size small for the benefit of the Android client's memory...
+  -->
+        <param name="xmin" value="-1.0"/>
+        <param name="ymin" value="-1.0"/>
+        <param name="xmax" value="1.0"/>
+        <param name="ymax" value="1.0"/>
+
+        <param name="delta" value="0.05"/>
+        <param name="llsamplerange" value="0.01"/>
+        <param name="llsamplestep" value="0.01"/>
+        <param name="lasamplerange" value="0.005"/>
+        <param name="lasamplestep" value="0.005"/>
+        <remap from="scan" to="$(arg scan_topic)"/>
+    </node>
+    <node pkg="nodelet" type="nodelet" args="manager" name="image_to_pc2_transform_manager" output="screen"/>
+    <node pkg="nodelet" type="nodelet" name="point_cloud_topic" args="load depth_image_proc/point_cloud_xyz image_to_pc2_transform_manager --no-bond">
+        <remap from="camera_info" to="$(arg camera_info)"/>
+        <remap from="image_rect" to="$(arg scan_topic)"/>
+    </node>
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+        <param name="resolution" value="0.1"/>
+        <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+        <param name="frame_id" type="string" value="odom"/>
+        <!-- maximum range to integrate (speedup!) -->
+        <param name="sensor_model/max_range" value="5.0"/>
+        <param name="occupancy_min_z" value="0.4" />
+        <param name="occupancy_max_z" value="1.5" />
+        <!-- data source to integrate (PointCloud2) -->
+        <remap from="cloud_in" to="/points"/>
+    </node>
+</launch>
